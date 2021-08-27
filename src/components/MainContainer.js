@@ -2,27 +2,47 @@ import React, { useState, useEffect } from 'react'
 import uniqid from 'uniqid';
 import Line from './Line';
 import './mainContainer.css'
+import PoemInput from './PoemInput';
 
 function MainContainer() {
 
+
+  const [rawPoem, setRawPoem] = useState('');
   const [stanza, setStanza] = useState([]);
   const [isStuttering, setIsStuttering] = useState(false);
+  const [intervalID, setIntervalID] = useState(null);
+  const [poemInput, setPoemInput] = useState('');
 
-  const firstStanzaOfLeBateauivre = 
-  `Tiger, tiger, burning bright
+  const tygerTyger =  `Tiger, tiger, burning bright
   In the forests of the night,
   What immortal hand or eye
   Could frame thy fearful symmetry?`;
 
-  const initializeStanza = () => {
-    const stanzaArray = firstStanzaOfLeBateauivre.split(' ');
+  const handleInput = (e) => {
+    setPoemInput(e.target.value);
+  }
+
+  
+  const initializeStanza = (poem) => {
+
+    setRawPoem(poem);
+    console.log(poem);
+    const stanzaArray = poem.split(' ');
+    console.log(stanzaArray)
     const wordsOfStanza = stanzaArray.map(word => {
       return {
         id: uniqid(),
         text: word,
         spin: false,
       }
-    })
+    });
+
+    // if there's an active stutter in the background already
+    if (intervalID) {
+      window.clearInterval(intervalID);
+      setIntervalID(null);
+      setIsStuttering(false);
+    }
     setStanza(wordsOfStanza);
   }
 
@@ -55,6 +75,9 @@ function MainContainer() {
     setStanza(randomOrderStanza);
   }
 
+  // need to fix this to deal with escaped line break character
+  // needs to be fixed in the first processing of the poem into
+  // an array of objects as well
   const chopIntoLines = (stanza) => {
     const lines = [];
     let currentLine = [];
@@ -85,8 +108,19 @@ function MainContainer() {
     setIsStuttering(isStuttering => !isStuttering)
   }
 
+  const newPoem = () => {
+    if (poemInput !== '') {
+      initializeStanza(poemInput);
+      return;
+    }
+  }
+
+  const resetPoem = () => {
+    initializeStanza(rawPoem);
+  }
+
   useEffect(() => {
-    initializeStanza()
+    initializeStanza(tygerTyger)
   }, []);
 
   useEffect(() => {
@@ -94,6 +128,7 @@ function MainContainer() {
     const id =  window.setInterval(() => {
         setStanza(stanza => flipSpin(stanza))
       }, 500)
+      setIntervalID(id)
       return () => window.clearInterval(id);
     } 
   }, [isStuttering]);
@@ -106,14 +141,19 @@ function MainContainer() {
       <div className='buttons'>
         <button className="button" onClick={() => randomize()}>New Order</button>
         <button className="button" onClick={() => handleToggleSpinAll()}>Toggle Spin</button>
-        <button className="button" onClick={() => initializeStanza()}>Reset</button>
+        <button className="button" onClick={() => resetPoem()}>Reset</button>
         <button 
           className={`button ${isStuttering ? 'active' : ''}` }
           onClick={() => toggleStutter()}
           >Stutter
         </button>
-
+        <button className="button" onClick={() => newPoem()}>Set Poem</button>
+      
       </div>
+      <PoemInput 
+        handleInput={handleInput}
+      />
+
     </div>
   )
 }

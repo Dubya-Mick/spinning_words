@@ -12,6 +12,7 @@ function MainContainer() {
   const [isStuttering, setIsStuttering] = useState(false);
   const [intervalID, setIntervalID] = useState(null);
   const [poemInput, setPoemInput] = useState('');
+  const LINE_BREAK = 'LINE_BREAK';
 
   const tygerTyger =  `Tiger, tiger, burning bright
   In the forests of the night,
@@ -26,17 +27,48 @@ function MainContainer() {
   const initializeStanza = (poem) => {
 
     setRawPoem(poem);
-    console.log(poem);
     const stanzaArray = poem.split(' ');
-    console.log(stanzaArray)
-    const wordsOfStanza = stanzaArray.map(word => {
-      return {
-        id: uniqid(),
-        text: word,
-        spin: false,
-      }
-    });
+    const wordsOfStanza = stanzaArray
+      // remove extra spaces included by project gutenber, for example
+      .filter(word => word !== '')
+      .reduce((newStanza, word) => {
+        // if the line break chaarcter iis on the end of the string
+        if (word.match(/[\n]$/g)) {
+          const trimmedWord = word.replace(/\r?\n|\r/g, '');
+          const newWord = {
+            id: uniqid(),
+            text: trimmedWord,
+            spin: false,
+          }
+          newStanza.push(newWord, LINE_BREAK)
+        } 
 
+        // if the /n character is stuck between two words/not on the end
+        else if (word.match(/\r?\n|\r/g)) {
+          const words = word.split('\n');
+          console.log(words);
+          const word1 = {
+            id: uniqid(),
+            text: words[0],
+            spin: false
+          }
+          const word2 = {
+            id: uniqid(),
+            text: words[1],
+            spin: false
+          }
+          newStanza.push(word1, LINE_BREAK, word2);
+        }
+        
+        else {
+          newStanza.push({
+            id: uniqid(),
+            text: word,
+            spin: false
+          })
+        }
+      return newStanza;
+    }, []);
     // if there's an active stutter in the background already
     if (intervalID) {
       window.clearInterval(intervalID);
@@ -48,6 +80,7 @@ function MainContainer() {
 
   const flipSpin = (stanza) => {
     return stanza.map((word) => {
+      if (word === LINE_BREAK) return LINE_BREAK;
       return { ...word, spin: !word.spin }
     })
   }
@@ -75,14 +108,11 @@ function MainContainer() {
     setStanza(randomOrderStanza);
   }
 
-  // need to fix this to deal with escaped line break character
-  // needs to be fixed in the first processing of the poem into
-  // an array of objects as well
   const chopIntoLines = (stanza) => {
     const lines = [];
     let currentLine = [];
     for (let i = 0; i < stanza.length; i ++) {
-      if (stanza[i].text === '') {
+      if (stanza[i] === LINE_BREAK) {
         lines.push(currentLine);
         currentLine = [];
       } else {
@@ -95,9 +125,10 @@ function MainContainer() {
   }
 
   const lines = chopIntoLines(stanza)
-    .map(line => {
+    .map((line, index) => {
       return (
         <Line 
+          key={index}
           line={line}
           toggleSingleWordSpin={toggleSingleWordSpin}
         />

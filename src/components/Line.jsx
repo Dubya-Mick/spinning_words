@@ -4,9 +4,10 @@ import './line.css'
 
 function Line({ line, toggleSingleWordSpin }) {
 
-  const words = line.map(word => {
+  const words = line.map((word, index) => {
     return (
       <Word 
+        key={index}
         word={word}
         toggleSingleWordSpin={toggleSingleWordSpin}
       />

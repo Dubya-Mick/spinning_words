@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import uniqid from 'uniqid';
-import Line from './Line';
+import Buttons from './Buttons';
 import './mainContainer.css'
 import PoemInput from './PoemInput';
+import Stanza from './Stanza';
 
 function MainContainer() {
 
@@ -10,19 +11,16 @@ function MainContainer() {
   const [rawPoem, setRawPoem] = useState('');
   const [stanza, setStanza] = useState([]);
   const [isStuttering, setIsStuttering] = useState(false);
-  const [intervalID, setIntervalID] = useState(null);
   const [poemInput, setPoemInput] = useState('');
-  const LINE_BREAK = 'LINE_BREAK';
+  const intervalID = useRef(null);
 
-  const tygerTyger =  `Tiger, tiger, burning bright
-  In the forests of the night,
-  What immortal hand or eye
-  Could frame thy fearful symmetry?`;
+  const LINE_BREAK = 'LINE_BREAK';
 
   const handleInput = (e) => {
     setPoemInput(e.target.value);
   }
 
+  // need to deal with muliple line breaks which chain \n together
   
   const initializeStanza = (poem) => {
 
@@ -34,7 +32,9 @@ function MainContainer() {
       .reduce((newStanza, word) => {
         // if the line break chaarcter iis on the end of the string
         if (word.match(/[\n]$/g)) {
+          console.log(word);
           const trimmedWord = word.replace(/\r?\n|\r/g, '');
+          console.log(trimmedWord)
           const newWord = {
             id: uniqid(),
             text: trimmedWord,
@@ -69,10 +69,11 @@ function MainContainer() {
         }
       return newStanza;
     }, []);
+    
     // if there's an active stutter in the background already
     if (intervalID) {
       window.clearInterval(intervalID);
-      setIntervalID(null);
+      intervalID.current = null;
       setIsStuttering(false);
     }
     setStanza(wordsOfStanza);
@@ -108,33 +109,6 @@ function MainContainer() {
     setStanza(randomOrderStanza);
   }
 
-  const chopIntoLines = (stanza) => {
-    const lines = [];
-    let currentLine = [];
-    for (let i = 0; i < stanza.length; i ++) {
-      if (stanza[i] === LINE_BREAK) {
-        lines.push(currentLine);
-        currentLine = [];
-      } else {
-        currentLine.push(stanza[i]);
-      }
-    }
-    // last line gets pushed in once loop finishes
-    lines.push(currentLine);
-    return lines;
-  }
-
-  const lines = chopIntoLines(stanza)
-    .map((line, index) => {
-      return (
-        <Line 
-          key={index}
-          line={line}
-          toggleSingleWordSpin={toggleSingleWordSpin}
-        />
-      )
-    })
-
   const toggleStutter = () => {
     setIsStuttering(isStuttering => !isStuttering)
   }
@@ -151,6 +125,10 @@ function MainContainer() {
   }
 
   useEffect(() => {
+    const tygerTyger = `Tiger, tiger, burning bright
+    In the forests of the night,
+    What immortal hand or eye
+    Could frame thy fearful symmetry?`;
     initializeStanza(tygerTyger)
   }, []);
 
@@ -159,28 +137,24 @@ function MainContainer() {
     const id =  window.setInterval(() => {
         setStanza(stanza => flipSpin(stanza))
       }, 500)
-      setIntervalID(id)
       return () => window.clearInterval(id);
     } 
   }, [isStuttering]);
 
+
   return (
     <div>
-      <div className='main-container'>
-        {lines}
-      </div>
-      <div className='buttons'>
-        <button className="button" onClick={() => randomize()}>New Order</button>
-        <button className="button" onClick={() => handleToggleSpinAll()}>Toggle Spin</button>
-        <button className="button" onClick={() => resetPoem()}>Reset</button>
-        <button 
-          className={`button ${isStuttering ? 'active' : ''}` }
-          onClick={() => toggleStutter()}
-          >Stutter
-        </button>
-        <button className="button" onClick={() => newPoem()}>Set Poem</button>
-      
-      </div>
+      <Stanza 
+        stanza={stanza}
+        toggleSingleWordSpin={toggleSingleWordSpin}
+      />
+      <Buttons 
+        randomize={randomize}
+        handleToggleSpinAll={handleToggleSpinAll}
+        resetPoem={resetPoem}
+        toggleStutter={toggleStutter}
+        newPoem={newPoem}
+      />
       <PoemInput 
         handleInput={handleInput}
       />

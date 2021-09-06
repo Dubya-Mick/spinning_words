@@ -1,0 +1,22 @@
+.buttons {
+  width: 30rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+}
+
+.button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  padding: 1rem;
+  background-color: #e0e0e0;
+  box-shadow:  20px 20px 60px #bebebe,
+             -20px -20px 60px #ffffff;
+}
+
+.active {
+  box-shadow:  20px 20px 33px #5a5a5a,
+             -20px -20px 33px #ffffff;
+}

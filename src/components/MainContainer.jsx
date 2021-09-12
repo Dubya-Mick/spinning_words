@@ -5,7 +5,7 @@ import './mainContainer.css'
 import PoemInput from './PoemInput';
 import Stanza from './Stanza';
 
-function MainContainer() {
+function MainContainer({ activePoem }) {
 
 
   const [rawPoem, setRawPoem] = useState('');
@@ -13,6 +13,7 @@ function MainContainer() {
   const [isStuttering, setIsStuttering] = useState(false);
   const [poemInput, setPoemInput] = useState('');
   const intervalID = useRef(null);
+
 
   const LINE_BREAK = 'LINE_BREAK';
 
@@ -140,6 +141,10 @@ function MainContainer() {
       return () => window.clearInterval(id);
     } 
   }, [isStuttering]);
+
+  useEffect(() => {
+    console.log(stanza)
+  }, [stanza])
 
 
   return (

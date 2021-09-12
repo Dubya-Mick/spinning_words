@@ -1,11 +1,9 @@
 import React from 'react'
-import Line from './Line'
-import './stanza.css'
+import Line from './Line';
 
-function Stanza({ poem, toggleSingleWordSpin }) {
+function Poem({ activePoem }) {
 
   const LINE_BREAK = 'LINE_BREAK';
-  console.log(poem)
 
   const chopIntoLines = (poem) => {
     const lines = [];
@@ -23,23 +21,21 @@ function Stanza({ poem, toggleSingleWordSpin }) {
     return lines;
   }
 
-  const lines = chopIntoLines(poem)
-    .map((line, index) => {
-      return (
-        <Line 
-          key={index}
-          line={line}
-          toggleSingleWordSpin={toggleSingleWordSpin}
-        />
-      )
-    })
-
+  const lines = chopIntoLines(activePoem)
+  .map((line, index) => {
+    return (
+      <Line 
+        key={index}
+        line={line}
+      />
+    )
+  })
 
   return (
-    <div className="stanza">
+    <div>
       {lines}
     </div>
   )
 }
 
-export default Stanza
+export default Poem
